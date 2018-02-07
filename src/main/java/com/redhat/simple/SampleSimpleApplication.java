@@ -16,10 +16,17 @@
 
 package com.redhat.simple;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.listener.ListenerFactory;
+import org.apache.ftpserver.usermanager.PropertiesUserManagerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -31,21 +38,47 @@ import org.springframework.context.annotation.Configuration;
 @ComponentScan
 public class SampleSimpleApplication implements CommandLineRunner {
 
-	// Simple example shows how a command line spring application can execute an
-	// injected bean service. Also demonstrates how you can use @Value to inject
-	// command line args ('--name=whatever') or application properties
+	@Value("${FTP_USER}")
+	private String ftp_user;
 
-	// @Autowired
-	// private HelloWorldService helloWorldService;
+	@Value("${FTP_PWD_MD5}")
+	private String ftp_pwd;
+
+	@Value("${FTP_HOME}")
+	private String ftp_home;
+
+	@Value("${FTP_PORT}")
+	private String ftp_port;
 
 	@Override
 	public void run(String... args) {
 		FtpServerFactory serverFactory = new FtpServerFactory();
 		ListenerFactory factory = new ListenerFactory();
 		// set the port of the listenher
-		factory.setPort(2221);
+		factory.setPort(Integer.valueOf(ftp_port));
 		// replace the default listener
 		serverFactory.addListener("default", factory.createListener());
+
+		PropertiesUserManagerFactory userManagerFactory = new PropertiesUserManagerFactory();
+		try {
+			// userManagerFactory.setFile(new File(this.getClass().getResource("/users.properties").toURI()));
+			Properties props = new Properties();
+			props.load(this.getClass().getResourceAsStream("/users.properties"));
+			Properties parsedProps = new Properties();
+			props.keySet().stream().forEach(k -> {
+				String newValue = ((String) props.get(k)).replace("${FTP_PWD_MD5}", ftp_pwd);
+				newValue = newValue.replace("${FTP_HOME}", ftp_home);
+				parsedProps.put(((String) k).replace("${FTP_USER}", ftp_user), newValue);
+			});
+			File propFile = File.createTempFile("ftp-parsed-", ".props");
+			parsedProps.store(new FileOutputStream(propFile), "");
+			userManagerFactory.setFile(propFile);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		serverFactory.setUserManager(userManagerFactory.createUserManager());
+
 		// start the server
 		FtpServer server = serverFactory.createServer();
 		try {

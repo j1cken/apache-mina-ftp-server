@@ -58,7 +58,7 @@ public class SampleSimpleApplication implements CommandLineRunner {
 	 * Number of seconds before an idle data connection is closed
 	 */
 	@Value("${FTP_IDLE_TIMEOUT}")
-	private String ftp_idle_timeout = 30;
+	private String ftp_idle_timeout = "30";
 
 	@Override
 	public void run(String... args) {

@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.ftpserver.DataConnectionConfigurationFactory;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -50,12 +51,28 @@ public class SampleSimpleApplication implements CommandLineRunner {
 	@Value("${FTP_PORT}")
 	private String ftp_port;
 
+	@Value("${FTP_PORT_ACTIVE}")
+	private String ftp_port_active;
+
+	/**
+	 * Number of seconds before an idle data connection is closed
+	 */
+	@Value("${FTP_IDLE_TIMEOUT}")
+	private String ftp_idle_timeout = 30;
+
 	@Override
 	public void run(String... args) {
 		FtpServerFactory serverFactory = new FtpServerFactory();
 		ListenerFactory factory = new ListenerFactory();
+
 		// set the port of the listenher
 		factory.setPort(Integer.valueOf(ftp_port));
+
+		DataConnectionConfigurationFactory dcFactory = new DataConnectionConfigurationFactory();
+		dcFactory.setIdleTime(Integer.valueOf(ftp_idle_timeout));
+		dcFactory.setActiveLocalPort(Integer.valueOf(ftp_port_active));
+		factory.setDataConnectionConfiguration(dcFactory.createDataConnectionConfiguration());
+
 		// replace the default listener
 		serverFactory.addListener("default", factory.createListener());
 

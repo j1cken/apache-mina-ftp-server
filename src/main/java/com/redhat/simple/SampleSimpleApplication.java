@@ -60,6 +60,14 @@ public class SampleSimpleApplication implements CommandLineRunner {
 	@Value("${FTP_IDLE_TIMEOUT}")
 	private String ftp_idle_timeout = "30";
 
+	/**
+	 * The address the server will claim to be listening on in the PASV reply. 
+	 * Useful when the server is behind a NAT firewall and the client sees a different
+	 * address than the server is using
+	 */
+	@Value("${FTP_EXT_ADDR}")
+	private String ftp_external_address;
+
 	@Override
 	public void run(String... args) {
 		FtpServerFactory serverFactory = new FtpServerFactory();
@@ -70,7 +78,8 @@ public class SampleSimpleApplication implements CommandLineRunner {
 
 		DataConnectionConfigurationFactory dcFactory = new DataConnectionConfigurationFactory();
 		dcFactory.setIdleTime(Integer.valueOf(ftp_idle_timeout));
-		dcFactory.setActiveLocalPort(Integer.valueOf(ftp_port_active));
+		dcFactory.setPassiveExternalAddress(ftp_external_address);
+		dcFactory.setPassivePorts(ftp_port_active);
 		factory.setDataConnectionConfiguration(dcFactory.createDataConnectionConfiguration());
 
 		// replace the default listener

@@ -48,11 +48,11 @@ public class SampleSimpleApplication implements CommandLineRunner {
 	@Value("${FTP_HOME}")
 	private String ftp_home;
 
-	@Value("${FTP_PORT}")
-	private String ftp_port;
+	@Value("${FTP_CONTROL_PORT}")
+	private String ftp_ctrl_port;
 
-	@Value("${FTP_PORT_ACTIVE}")
-	private String ftp_port_active;
+	@Value("${FTP_DATA_PORT}")
+	private String ftp_data_port;
 
 	/**
 	 * Number of seconds before an idle data connection is closed
@@ -74,12 +74,12 @@ public class SampleSimpleApplication implements CommandLineRunner {
 		ListenerFactory factory = new ListenerFactory();
 
 		// set the port of the listenher
-		factory.setPort(Integer.valueOf(ftp_port));
+		factory.setPort(Integer.valueOf(ftp_ctrl_port));
 
 		DataConnectionConfigurationFactory dcFactory = new DataConnectionConfigurationFactory();
 		dcFactory.setIdleTime(Integer.valueOf(ftp_idle_timeout));
 		dcFactory.setPassiveExternalAddress(ftp_external_address);
-		dcFactory.setPassivePorts(ftp_port_active);
+		dcFactory.setPassivePorts(ftp_data_port);
 		factory.setDataConnectionConfiguration(dcFactory.createDataConnectionConfiguration());
 
 		// replace the default listener
